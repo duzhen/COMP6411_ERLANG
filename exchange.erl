@@ -5,7 +5,7 @@
 start_master() ->
     {ok, Calls} = file:consult("calls.txt"),
     io:format("~n** Calls to be made **~n"),
-    calling:start_calling(Calls),
+    lists:foreach(fun start_calls/1, Calls),
     master([]).
     % TEST
     % register(john_PID, spawn(project, client, [self(), john, [jill,joe, bob]])),
@@ -14,6 +14,11 @@ start_master() ->
     % register(bob_PID, spawn(project, client, [self(), bob, [john]])),
     % register(joe_PID, spawn(project, client, [self(), joe, [sue]])),
     % server([{john_PID, john}, {jill_PID, jill}, {sue_PID, sue}, {bob_PID, bob}, {joe_PID, joe}]).
+
+ start_calls({Caller, Friends}) -> 
+    spawn(calling, register_caller, [self(), Caller, Friends]),
+    % register(Caller, spawn(project, client, [self(), Caller, Friends])),
+    io:format("~p: ~p~n",[Caller, Friends]).
 
 master(User_List) ->
     % io:format("User_List:~p~n",[User_List]),
@@ -25,13 +30,14 @@ master(User_List) ->
                 false ->
                     master([{PID, Name} | User_List] )
             end;
-
+        {PID, timeout, Name} ->
+            io:format("~nProcess ~p has received no calls for 1 second, ending...~n", [Name]),
+            master(User_List);
         {PID, intro, From, To, Message} ->
             server_transfer(intro, PID, From, To, Message, User_List),
             {MegaSeconds, Seconds, MicroSeconds} = erlang:now(),
             io:format("~p received intro message from ~p [~p]~n", [To, From, MicroSeconds]),
             master(User_List);
-
         {PID, reply, From, To, Message} ->
             server_transfer(reply, PID, From, To, Message, User_List),
             {MegaSeconds, Seconds, MicroSeconds} = erlang:now(),
