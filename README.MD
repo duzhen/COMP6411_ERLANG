@@ -8,11 +8,12 @@ c(project).
 project:start_master().
 biu~~~
 ```
-
+OR
 ```
 cd Project
 erl
 c(exchange).
+c(calling).
 exchange:start_master().
 biu~biu~
 ```

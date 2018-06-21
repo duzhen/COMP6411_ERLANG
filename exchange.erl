@@ -61,36 +61,3 @@ server_transfer(Type, From, Name, To, Message, User_List, User_List) ->
             % io:format("~p~n~p~n", [ToPid, Message]),
             ToPid ! {Type, Name, Message}
     end.
-
-%%% wait for a response from the server
-await_result(Server_Node,From) ->
-    receive
-        % {messenger, stop, Why} -> % Stop the client 
-        %     io:format("~p~n", [Why]),
-        %     exit(normal);
-        {intro, Name, Message} ->  % Normal response
-            % io:format("~p receive message from: ~p say: ~p~n", [From, Name, Message]),
-            Server_Node ! {self(), reply, From, Name, "reply"};
-            % await_result(Server_Node,From);
-        {reply, Name, Message} ->  % Normal response
-            % io:format("Message reply: ~p say: ~p~n", [Name, Message])
-            % await_result(Server_Node,From)
-            pass
-    after 1000 ->
-            io:format("~nProcess ~p has received no calls for 1 second, ending...~n", [From]),
-            exit(timeout)
-    end.
-
-always_await_result(Server_Node,From) ->
-    receive
-        {intro, Name, Message} ->  % Normal response
-            % io:format("~p receive message from: ~p say: ~p~n", [From, Name, Message]),
-            Server_Node ! {self(), reply, From, Name, "reply"},
-            always_await_result(Server_Node,From);
-        {reply, Name, Message} ->  % Normal response
-            % io:format("Message reply: ~p say: ~p~n", [Name, Message]),
-            always_await_result(Server_Node,From)
-    after 1000 ->
-            io:format("~nProcess ~p has received no calls for 1 second, ending...~n", [From]),
-            exit(timeout)
-    end.
